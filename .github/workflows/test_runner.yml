@@ -25,17 +25,15 @@ jobs:
     needs: prepare-matrix
     runs-on: ubuntu-latest
     strategy:
-        matrix:
-          collection: ${{ fromJson(needs.prepare-matrix.outputs.collections) }}
-
+      matrix:
+        collection: ${{ fromJson(needs.prepare-matrix.outputs.collections) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Newman and Reporter
         run: |
-          npm install -g newman
-          npm install -g newman-reporter-htmlextra
+          npm i -g newman newman-reporter-htmlextra
 
       - name: Run Collection
         run: |
@@ -46,6 +44,12 @@ jobs:
           newman run "collections/${COLL}.json" \
             -r cli,htmlextra \
             --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
+
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: public
 
   create-index:
     needs: run-tests
@@ -61,8 +65,8 @@ jobs:
         run: |
           echo "<html><body><h1>Test Reports</h1><ul>" > public/index.html
           for d in public/*/ ; do
-          folder=$(basename "$d")
-          echo "<li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
+            folder=$(basename "$d")
+            echo "<li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
           done
           echo "</ul></body></html>" >> public/index.html
 
@@ -70,7 +74,6 @@ jobs:
         uses: actions/upload-pages-artifact@v2
         with:
           path: public
-
 
   deploy:
     needs: create-index
