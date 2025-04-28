@@ -1,0 +1,72 @@
+name: Run Multiple Postman Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      collections:
+        description: 'Select Postman collections to run (comma-separated)'
+        required: true
+        default: countries_test.json
+        type: string
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        collection: ${{ fromJson('["' + replace(github.event.inputs.collections, ',', '","') + '"]') }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Newman and Reporter
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
+
+      - name: Run Collection
+        run: |
+          mkdir -p public
+          COLL=${{ matrix.collection }}
+          echo "Running collection: $COLL"
+          mkdir -p "public/$COLL"
+          newman run "collections/${COLL}.json" \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export "public/$COLL/index.html"
+
+  create-index:
+    needs: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: github-pages
+          path: public
+
+      - name: Generate Dynamic Index
+        run: |
+          echo "<html><body><h1>Test Reports</h1><ul>" > public/index.html
+          for d in public/*/ ; do
+            folder=$(basename "$d")
+            echo "<li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
+          done
+          echo "</ul></body></html>" >> public/index.html
+
+      - name: Upload Updated Artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./public
+
+  deploy:
+    needs: create-index
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v2
