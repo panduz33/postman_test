@@ -1,0 +1,441 @@
+{
+	"info": {
+		"_postman_id": "6136e403-820f-4bc1-82f9-85a42133501a",
+		"name": "Reqres Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20112200"
+	},
+	"item": [
+		{
+			"name": "Get User List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"let counter = pm.collectionVariables.get('getUserCounter') || 1;",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200)",
+							"})",
+							"",
+							"pm.test('Response is an object', () => {",
+							"    pm.expect(pm.response).to.be.an('object');",
+							"})",
+							"",
+							"pm.test('Response has correct properties', () => {",
+							"    const responseKeys = Object.keys(response);",
+							"    pm.expect(responseKeys).to.have.include.members([\"page\",\"per_page\",\"total\",\"total_pages\",\"data\",\"support\"])",
+							"    response.data.forEach(key => {",
+							"        pm.expect(Object.keys(key)).to.have.include.members([\"id\",\"email\",\"first_name\",\"last_name\",\"avatar\"])",
+							"    })})",
+							"",
+							"",
+							"if(counter < 2){",
+							"    counter ++",
+							"    pm.collectionVariables.set(\"getUserCounter\", counter);",
+							"    pm.execution.setNextRequest(\"Get User List\");",
+							"}else {",
+							"    pm.collectionVariables.unset(\"getUserCounter\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"let counter = pm.collectionVariables.get('getUserCounter') || 1;",
+							"pm.collectionVariables.set(\"getUserCounter\", counter);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "reqres-free-v1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://reqres.in/api/users?page={{getUserCounter}}",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"users"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "{{getUserCounter}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User List Single",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"let counter = pm.collectionVariables.get('getUserSingleCounter') || 1;",
+							"",
+							"if(counter === 3){",
+							"    pm.test('Status code is 401', () => {",
+							"        pm.expect(pm.response.code).to.equal(401)",
+							"    })",
+							"",
+							"    pm.test('Response is an object', () => {",
+							"    pm.expect(pm.response).to.be.an('object');",
+							"    })",
+							"",
+							"    pm.test('Response has correct properties', () => {",
+							"    const responseKeys = Object.keys(response);",
+							"    pm.expect(responseKeys).to.have.include.members([\"error\",\"how_to_get_one\"])",
+							"    })",
+							"",
+							"    pm.test('Error message is correct', () => {",
+							"        pm.expect(response.error).to.equal(\"Missing API key.\")",
+							"    })",
+							"} else ",
+							"    {",
+							"        pm.test('Status code is 200', () => {",
+							"        pm.expect(pm.response.code).to.equal(200)",
+							"    })",
+							"",
+							"        pm.test('Response is an object', () => {",
+							"        pm.expect(pm.response).to.be.an('object');",
+							"    })",
+							"",
+							"    pm.test('Response has correct properties', () => {",
+							"        const responseKeys = Object.keys(response);",
+							"        pm.expect(responseKeys).to.have.include.members([\"data\", \"support\"])",
+							"        const dataKeys = Object.keys(response.data);",
+							"        pm.expect(dataKeys).to.have.include.members([\"id\", \"email\", \"first_name\", \"last_name\", \"avatar\"])",
+							"        const supportKeys = Object.keys(response.support);",
+							"        pm.expect(supportKeys).to.have.include.members([\"url\",\"text\"])",
+							"    })",
+							"}",
+							"",
+							"",
+							"if(counter < 12){",
+							"    counter ++",
+							"    pm.collectionVariables.set(\"getUserSingleCounter\", counter);",
+							"    pm.execution.setNextRequest(\"Get User List Single\");",
+							"}else {",
+							"    pm.collectionVariables.unset(\"getUserSingleCounter\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"let counter = pm.collectionVariables.get('getUserSingleCounter') || 1;",
+							"pm.collectionVariables.set(\"getUserSingleCounter\", counter);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "reqres-free-v1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://reqres.in/api/users/{{getUserSingleCounter}}",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"users",
+						"{{getUserSingleCounter}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"const moment = require('moment');",
+							"",
+							"pm.test('Status code is 201', () => {",
+							"    pm.expect(pm.response.code).to.equal(201)",
+							"",
+							"    pm.test('Response is an object', () => {",
+							"    pm.expect(pm.response).to.be.an('object');",
+							"})})",
+							"",
+							"pm.test('Response has correct properties', () => {",
+							"        const responseKeys = Object.keys(response);",
+							"        pm.expect(responseKeys).to.have.include.members([\"name\", \"job\",\"id\",\"createdAt\"])",
+							"    }",
+							")",
+							"",
+							"const currentDate = moment().format(\"YYYY-MM-DD\");",
+							"",
+							"pm.test('Response is correct', () => {",
+							"    const {name, job, id, createdAt} = response;",
+							"    pm.expect(name).to.equal(\"morpheus\");",
+							"    pm.expect(job).to.equal(\"leader\");",
+							"    pm.expect(id).to.not.be.empty;",
+							"    ",
+							"    const responseDate = moment(createdAt).format(\"YYYY-MM-DD\");",
+							"    pm.expect(responseDate).to.equal(currentDate);",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "reqres-free-v1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"morpheus\",\n    \"job\": \"leader\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://reqres.in/api/users",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"const moment = require('moment');",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200)",
+							"",
+							"    pm.test('Response is an object', () => {",
+							"    pm.expect(pm.response).to.be.an('object');",
+							"})})",
+							"",
+							"pm.test('Response has correct properties', () => {",
+							"        const responseKeys = Object.keys(response);",
+							"        pm.expect(responseKeys).to.have.include.members([\"id\", \"token\"])",
+							"    }",
+							")"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "reqres-free-v1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"eve.holt@reqres.in\",\n    \"password\": \"pistol\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://reqres.in/api/register",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"const moment = require('moment');",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200)",
+							"",
+							"    pm.test('Response is an object', () => {",
+							"    pm.expect(pm.response).to.be.an('object');",
+							"})})",
+							"",
+							"pm.test('Response has correct properties', () => {",
+							"        const responseKeys = Object.keys(response);",
+							"        pm.expect(responseKeys).to.have.include.members([\"token\"])",
+							"    }",
+							")",
+							"",
+							"pm.test('Response is correct', () => {",
+							"    const {token} = response;",
+							"    pm.expect(token).to.not.be.empty;",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "reqres-free-v1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"eve.holt@reqres.in\",\n    \"password\": \"cityslicka\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://reqres.in/api/login",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
