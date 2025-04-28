@@ -1,4 +1,4 @@
-name: Run Multiple Postman Tests
+name: Run Multiple Postman Tests Manual Input File
 
 on:
   workflow_dispatch:
@@ -69,34 +69,37 @@ jobs:
 
       - name: Generate dynamic index.html
         run: |
-            mkdir -p public
-            echo '<!DOCTYPE html>
-            <html lang="en">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Test Reports</title>
-            <style>
-            body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-            h1 { color: #333; }
-            ul { list-style: none; padding: 0; }
-            li { background: #fff; margin: 10px 0; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-            a { text-decoration: none; color: #007acc; font-weight: bold; }
-            a:hover { text-decoration: underline; }
-            </style>
-            </head>
-            <body>
-            <h1>Test Reports</h1>
-            <ul>' > public/index.html
+          mkdir -p public
+          echo '<!DOCTYPE html>
+          <html lang="en">
+          <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Test Reports</title>
+          <style>
+          body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f9fafb; margin: 0; padding: 40px; }
+          h1 { text-align: center; color: #111827; margin-bottom: 40px; }
+          .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+          .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center; transition: transform 0.2s; }
+          .card:hover { transform: translateY(-5px); }
+          .card a { text-decoration: none; color: #2563eb; font-size: 18px; font-weight: 600; }
+          </style>
+          </head>
+          <body>
+          <h1>Test Reports</h1>
+          <div class="grid">' > public/index.html
 
-            for d in public/*/ ; do
-            folder=$(basename "$d")
-            echo "        <li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
-            done
+          for d in public/*/ ; do
+          folder=$(basename "$d")
+          # Beautify the folder name: replace "-" and "_" with space, capitalize words
+          display_name=$(echo "$folder" | sed 's/[-_]/ /g' | awk '{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) substr($i,2)}}1')
+          echo "        <div class=\"card\"><a href=\"$folder/index.html\">$display_name</a></div>" >> public/index.html
+          done
 
-            echo '      </ul>
-            </body>
-            </html>' >> public/index.html
+          echo '      </div>
+          </body>
+          </html>' >> public/index.html
+
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
