@@ -6,17 +6,27 @@ on:
       collections:
         description: 'Select Postman collections to run (comma-separated)'
         required: true
-        default: countries_test.json
-        type: string
+        default: login_tests,api_tests
 
 jobs:
-  run-tests:
+  prepare-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      collections: ${{ steps.set-matrix.outputs.collections }}
+    steps:
+      - name: Prepare Matrix
+        id: set-matrix
+        run: |
+          echo "Input Collections: ${{ github.event.inputs.collections }}"
+          COLS=$(echo "${{ github.event.inputs.collections }}" | jq -R 'split(",")')
+          echo "collections=$COLS" >> $GITHUB_OUTPUT
 
+  run-tests:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        collection: ${{ fromJson('["' + replace(github.event.inputs.collections, ',', '","') + '"]') }}
-
+        collection: ${{ fromJson(needs.prepare-matrix.outputs.collections) }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -66,7 +76,6 @@ jobs:
     permissions:
       pages: write
       id-token: write
-
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v2
