@@ -45,6 +45,9 @@ jobs:
           -r cli,htmlextra \
           --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
           
+      - name: Debug
+        run: ls -R public/${{ matrix.collection }}
+          
       - name: Upload Test Report for Collection
         uses: actions/upload-artifact@v4
         with:
