@@ -46,7 +46,7 @@ jobs:
           --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
           
       - name: Upload Test Report for Collection
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: github-pages-${{ matrix.collection }}
           path: public/${{ matrix.collection }}
