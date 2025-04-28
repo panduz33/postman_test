@@ -23,7 +23,7 @@ jobs:
           mkdir -p public
           newman run ./countries_test.json \
             -r cli,htmlextra \
-            --reporter-htmlextra-export public/report.html
+            --reporter-htmlextra-export public/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
