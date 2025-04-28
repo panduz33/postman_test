@@ -6,7 +6,7 @@ on:
       collections:
         description: 'Select Postman collections to run (comma-separated)'
         required: true
-        default: countries_test,reqres_test
+        default: login_tests,api_tests
 
 jobs:
   prepare-matrix:
@@ -27,13 +27,15 @@ jobs:
     strategy:
       matrix:
         collection: ${{ fromJson(needs.prepare-matrix.outputs.collections) }}
+
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Install Newman and Reporter
         run: |
-          npm i -g newman newman-reporter-htmlextra
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
 
       - name: Run Collection
         run: |
@@ -42,66 +44,36 @@ jobs:
           echo "Running collection: $COLL"
           mkdir -p "public/$COLL"
           newman run "collections/${COLL}.json" \
-          -r cli,htmlextra \
-          --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
+            -r cli,htmlextra \
+            --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: public
 
   create-index:
     needs: run-tests
     runs-on: ubuntu-latest
     steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Ensure public folder exists
-        run: mkdir -p public
-        
-      - name: Download all test reports
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
+          name: github-pages
           path: public
 
       - name: Generate dynamic index.html
         run: |
           mkdir -p public
-          {
-          echo "<!DOCTYPE html>"
-          echo "<html lang=\"en\">"
-          echo "<head>"
-          echo "  <meta charset=\"UTF-8\">"
-          echo "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-          echo "  <title>Test Reports</title>"
-          echo "  <style>"
-          echo "    body { font-family: Arial, sans-serif; padding: 20px; }"
-          echo "    h1 { color: #333; }"
-          echo "    ul { list-style-type: none; padding: 0; }"
-          echo "    li { margin: 10px 0; }"
-          echo "    a { text-decoration: none; color: #007acc; font-size: 18px; }"
-          echo "    a:hover { text-decoration: underline; }"
-          echo "  </style>"
-          echo "</head>"
-          echo "<body>"
-          echo "  <h1>Test Reports</h1>"
-          echo "  <ul>"
-      
-          found_folder=false
+          echo "<html><head><title>Test Reports</title></head><body><h1>Test Reports</h1><ul>" > public/index.html
           for d in public/*/ ; do
             if [ -d "$d" ]; then
-          folder=$(basename "$d")
-          echo "    <li><a href=\"$folder/index.html\">$folder Report</a></li>"
-          found_folder=true
+              folder=$(basename "$d")
+              echo "<li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
             fi
           done
-
-          if [ "$found_folder" = false ]; then
-          echo "    <li>No reports found.</li>"
-          fi
-
-          echo "  </ul>"
-          echo "</body>"
-          echo "</html>"
-          } > public/index.html
-
+          echo "</ul></body></html>" >> public/index.html
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
