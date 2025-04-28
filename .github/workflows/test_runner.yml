@@ -44,22 +44,17 @@ jobs:
           newman run "collections/${COLL}.json" \
           -r cli,htmlextra \
           --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
-          
-      - name: Debug
-        run: ls -R public/${{ matrix.collection }}
-          
-      - name: Upload Test Report for Collection
-        uses: actions/upload-artifact@v4
-        with:
-          name: github-pages-${{ matrix.collection }}
-          path: public/${{ matrix.collection }}
 
   create-index:
     needs: run-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Download all test reports
+        uses: actions/download-artifact@v2
         with:
           path: public
 
