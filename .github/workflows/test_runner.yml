@@ -73,7 +73,7 @@ jobs:
           echo "</ul></body></html>" >> public/index.html
 
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: public
 
