@@ -52,6 +52,14 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Download Pages Artifact
+        uses: actions/download-pages-artifact@v2
+        with:
+          path: public  # Download all generated test reports into ./public
+
+      - name: Ensure public folder exists
+        run: mkdir -p public
         
       - name: Download all test reports
         uses: actions/download-artifact@v4
