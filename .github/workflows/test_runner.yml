@@ -27,7 +27,8 @@ jobs:
     strategy:
       matrix:
         collection: ${{ fromJson(needs.prepare-matrix.outputs.collections) }}
-
+    outputs:
+      public-dir: public
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -39,28 +40,26 @@ jobs:
 
       - name: Run Collection
         run: |
-          mkdir -p public
           COLL=${{ matrix.collection }}
           echo "Running collection: $COLL"
-          mkdir -p "public/$COLL"
+          mkdir -p public/$COLL
           newman run "collections/${COLL}.json" \
             -r cli,htmlextra \
             --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
 
-      - name: Upload artifact
+      - name: Upload collection artifact
         uses: actions/upload-artifact@v4
         with:
-          name: github-pages
-          path: public
+          name: ${{ matrix.collection }}-report
+          path: public/${{ matrix.collection }}
 
-  create-index:
+  collect-artifacts:
     needs: run-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifact
+      - name: Download all collection artifacts
         uses: actions/download-artifact@v4
         with:
-          name: github-pages
           path: public
 
       - name: Generate dynamic index.html
@@ -81,7 +80,7 @@ jobs:
           path: public
 
   deploy:
-    needs: create-index
+    needs: collect-artifacts
     runs-on: ubuntu-latest
     permissions:
       pages: write
