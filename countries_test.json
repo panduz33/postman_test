@@ -1,0 +1,478 @@
+{
+	"info": {
+		"_postman_id": "32caf3c8-40b5-4f31-af0c-26d8cde6eda1",
+		"name": "Countries Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20112200"
+	},
+	"item": [
+		{
+			"name": "Get All Countries",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Total countries is 250', () => {",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.equal(250);",
+							"})",
+							"",
+							"if(response.length === 0){",
+							"    console.error(\"This request is returning error, stop execution....\")",
+							"    pm.execution.setNextRequest(null);",
+							"}",
+							"",
+							"//Get random countries to be checked in next request - search by Name",
+							"const randomNumber = randomNumberGenerator(response);",
+							"const randomCountry = response[randomNumber];",
+							"",
+							"const randomCountryName = randomCountry.name.common;",
+							"pm.collectionVariables.set(\"randomCountryName\", randomCountryName);",
+							"",
+							"const randomCountryCode = randomCountry.cca2;",
+							"pm.collectionVariables.set(\"randomCountryCode\", randomCountryCode);",
+							"",
+							"const randomCountryCurrencyCode = Object.keys(randomCountry.currencies)[0];",
+							"pm.collectionVariables.set(\"randomCountryCurrencyCode\", randomCountryCurrencyCode);",
+							"",
+							"const randomCountryLangs = Object.keys(randomCountry.languages);",
+							"const randomCountryLang = randomCountryLangs[randomNumberGenerator(randomCountryLangs)];",
+							"pm.collectionVariables.set(\"randomCountryLang\", randomCountryLang);",
+							"",
+							"const randomCapitalCity = randomCountry.capital[0];",
+							"pm.collectionVariables.set(\"randomCapitalCity\", randomCapitalCity);",
+							"",
+							"const randomRegion = randomCountry.region;",
+							"pm.collectionVariables.set(\"randomRegion\", randomRegion);",
+							"",
+							"const randomSubRegion = randomCountry.subregion;",
+							"pm.collectionVariables.set(\"randomSubregion\", randomSubRegion);",
+							"",
+							"",
+							"/*",
+							"* params {arrayData} Array",
+							"*/",
+							"",
+							"function randomNumberGenerator(arrayData){",
+							"    return Math.floor(Math.random() * arrayData.length)",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v3.1/all",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v3.1",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Country By Name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Data is found and has at least 1 result', () => {",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.greaterThan(0);",
+							"})",
+							"",
+							"pm.test('Data returned with correct data', () => {",
+							"    response.forEach(country => {",
+							"        pm.expect(country.name.common).to.equal(pm.collectionVariables.get(\"randomCountryName\"))",
+							"    })",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v3.1/name/{{randomCountryName}}?fullText=true",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v3.1",
+						"name",
+						"{{randomCountryName}}"
+					],
+					"query": [
+						{
+							"key": "fullText",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Country By Code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Data is found and has at least 1 result', () => {",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.greaterThan(0);",
+							"})",
+							"",
+							"pm.test('Data returned with correct data', () => {",
+							"    response.forEach(country => {",
+							"        pm.expect(country.name.common).to.equal(pm.collectionVariables.get(\"randomCountryName\"))",
+							"        pm.expect(country.cca2).to.equal(pm.collectionVariables.get(\"randomCountryCode\"));",
+							"    })",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v3.1/alpha/{{randomCountryCode}}",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v3.1",
+						"alpha",
+						"{{randomCountryCode}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Country By Currrency Code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Data is found and has at least 1 result', () => {",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.greaterThan(0);",
+							"})",
+							"",
+							"pm.test('Data returned with correct data', () => {",
+							"    response.forEach(country => {",
+							"        pm.expect((Object.keys(response[0].currencies))[0]).to.equal(pm.collectionVariables.get(\"randomCountryCurrencyCode\"))",
+							"    })",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v3.1/currency/{{randomCountryCurrencyCode}}",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v3.1",
+						"currency",
+						"{{randomCountryCurrencyCode}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Country By Language",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Data is found and has at least 1 result', () => {",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.greaterThan(0);",
+							"})",
+							"",
+							"//Get the random country saved from get all country and match with returned data",
+							"const filteredCountry = response.filter(country => {",
+							"    return country.name.common === pm.collectionVariables.get(\"randomCountryName\")",
+							"&& country.cca2 === pm.collectionVariables.get(\"randomCountryCode\")",
+							"});",
+							"",
+							"pm.test('Returned data matches the random country', () => {",
+							"    pm.expect(filteredCountry.length).to.equal(1);",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v3.1/lang/{{randomCountryLang}}",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v3.1",
+						"lang",
+						"{{randomCountryLang}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Country By Capital City",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Data is found and has at least 1 result', () => {",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.greaterThan(0);",
+							"})",
+							"",
+							"pm.test('Data returned with correct data', () => {",
+							"    response.forEach(country => {",
+							"        pm.expect(country.name.common).to.equal(pm.collectionVariables.get(\"randomCountryName\"))",
+							"        pm.expect(country.cca2).to.equal(pm.collectionVariables.get(\"randomCountryCode\"));",
+							"    })",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v3.1/capital/{{randomCapitalCity}}",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v3.1",
+						"capital",
+						"{{randomCapitalCity}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Country By Region",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Data is found and has at least 1 result', () => {",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.greaterThan(0);",
+							"})",
+							"",
+							"//Get the random country saved from get all country and match with returned data",
+							"const filteredCountry = response.filter(country => {",
+							"    return country.name.common === pm.collectionVariables.get(\"randomCountryName\")",
+							"&& country.cca2 === pm.collectionVariables.get(\"randomCountryCode\")",
+							"});",
+							"",
+							"pm.test('Returned data matches the random country', () => {",
+							"    pm.expect(filteredCountry.length).to.equal(1);",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v3.1/region/{{randomRegion}}",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v3.1",
+						"region",
+						"{{randomRegion}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Country By Sub Region",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.test('Status code is 200', () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Data is found and has at least 1 result', () => {",
+							"    pm.expect(response).to.be.an('array');",
+							"    pm.expect(response.length).to.greaterThan(0);",
+							"})",
+							"",
+							"//Get the random country saved from get all country and match with returned data",
+							"const filteredCountry = response.filter(country => {",
+							"    return country.name.common === pm.collectionVariables.get(\"randomCountryName\")",
+							"&& country.cca2 === pm.collectionVariables.get(\"randomCountryCode\")",
+							"});",
+							"",
+							"pm.test('Returned data matches the random country', () => {",
+							"    pm.expect(filteredCountry.length).to.equal(1);",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://restcountries.com/v3.1/subregion/{{randomSubregion}}",
+					"protocol": "https",
+					"host": [
+						"restcountries",
+						"com"
+					],
+					"path": [
+						"v3.1",
+						"subregion",
+						"{{randomSubregion}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "randomCountryName",
+			"value": ""
+		},
+		{
+			"key": "randomCountryCode",
+			"value": ""
+		},
+		{
+			"key": "randomCountryCurrencyCode",
+			"value": ""
+		},
+		{
+			"key": "randomCountryLang",
+			"value": ""
+		},
+		{
+			"key": "randomCapitalCity",
+			"value": ""
+		},
+		{
+			"key": "randomRegion",
+			"value": ""
+		},
+		{
+			"key": "randomSubregion",
+			"value": ""
+		}
+	]
+}
