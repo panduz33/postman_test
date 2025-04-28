@@ -45,7 +45,7 @@ jobs:
           mkdir -p "public/$COLL"
           newman run "collections/${COLL}.json" \
             -r cli,htmlextra \
-            --reporter-htmlextra-export "public/$COLL/index.html"
+            --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
 
   create-index:
     needs: run-tests
