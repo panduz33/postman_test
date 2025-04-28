@@ -18,15 +18,16 @@ jobs:
         id: set-matrix
         run: |
           echo "Input Collections: ${{ github.event.inputs.collections }}"
-          COLS=$(echo "${{ github.event.inputs.collections }}" | jq -R 'split(",")')
-          echo "collections=$COLS" >> $GITHUB_OUTPUT
+          collections_json=$(jq -nc --arg cols "${{ github.event.inputs.collections }}" '$cols | split(",")')
+          echo "collections=$collections_json" >> $GITHUB_OUTPUT
 
   run-tests:
     needs: prepare-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        collection: ${{ fromJson(needs.prepare-matrix.outputs.collections) }}
+        matrix:
+          collection: ${{ fromJson(needs.prepare-matrix.outputs.collections) }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
