@@ -47,6 +47,11 @@ jobs:
             -r cli,htmlextra \
             --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
 
+      - name: Show public folder content
+        run: |
+          echo "Contents of public/"
+          ls -R public
+
       - name: Upload collection artifact
         uses: actions/upload-artifact@v4
         with:
