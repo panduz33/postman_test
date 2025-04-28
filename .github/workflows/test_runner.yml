@@ -69,15 +69,34 @@ jobs:
 
       - name: Generate dynamic index.html
         run: |
-          mkdir -p public
-          echo "<html><head><title>Test Reports</title></head><body><h1>Test Reports</h1><ul>" > public/index.html
-          for d in public/*/ ; do
-            if [ -d "$d" ]; then
-              folder=$(basename "$d")
-              echo "<li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
-            fi
-          done
-          echo "</ul></body></html>" >> public/index.html
+            mkdir -p public
+            echo '<!DOCTYPE html>
+            <html lang="en">
+            <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Test Reports</title>
+            <style>
+            body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+            h1 { color: #333; }
+            ul { list-style: none; padding: 0; }
+            li { background: #fff; margin: 10px 0; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            a { text-decoration: none; color: #007acc; font-weight: bold; }
+            a:hover { text-decoration: underline; }
+            </style>
+            </head>
+            <body>
+            <h1>Test Reports</h1>
+            <ul>' > public/index.html
+
+            for d in public/*/ ; do
+            folder=$(basename "$d")
+            echo "        <li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
+            done
+
+            echo '      </ul>
+            </body>
+            </html>' >> public/index.html
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
