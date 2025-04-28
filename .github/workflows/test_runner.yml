@@ -53,11 +53,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Pages Artifact
-        uses: actions/download-pages-artifact@v2
-        with:
-          path: public  # Download all generated test reports into ./public
-
       - name: Ensure public folder exists
         run: mkdir -p public
         
@@ -88,4 +83,4 @@ jobs:
       id-token: write
     steps:
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
