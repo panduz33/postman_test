@@ -51,25 +51,26 @@ jobs:
     needs: run-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout artifact
-        uses: actions/download-artifact@v2
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
           name: github-pages
           path: public
 
-      - name: Generate Dynamic Index
+      - name: Generate dynamic index.html
         run: |
           echo "<html><body><h1>Test Reports</h1><ul>" > public/index.html
           for d in public/*/ ; do
-            folder=$(basename "$d")
-            echo "<li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
+          folder=$(basename "$d")
+          echo "<li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
           done
           echo "</ul></body></html>" >> public/index.html
 
-      - name: Upload Updated Artifact
+      - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          path: ./public
+          path: public
+
 
   deploy:
     needs: create-index
