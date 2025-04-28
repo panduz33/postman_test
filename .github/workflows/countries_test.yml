@@ -1,10 +1,12 @@
-name: Run Postman Tests with Newman
+name: Run Postman Tests and Deploy to GitHub Pages
 
 on:
-  workflow_dispatch:  # Allow manual run from GitHub UI
-  
+  workflow_dispatch:  # manual trigger
+  schedule:
+    - cron: '0 0 * * *'  # daily at midnight
+
 jobs:
-  newman-tests:
+  run-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,12 +20,13 @@ jobs:
 
       - name: Run Postman Collection
         run: |
+          mkdir -p public
           newman run ./countries_test.json \
             -r cli,htmlextra \
-            --reporter-htmlextra-export newman/report.html
+            --reporter-htmlextra-export public/report.html
 
-      - name: Upload HTML Report
-        uses: actions/upload-artifact@v4
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          name: newman-report
-          path: newman/report.html
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
