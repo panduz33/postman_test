@@ -63,12 +63,45 @@ jobs:
 
       - name: Generate dynamic index.html
         run: |
-          echo "<html><body><h1>Test Reports</h1><ul>" > public/index.html
+          mkdir -p public
+          {
+          echo "<!DOCTYPE html>"
+          echo "<html lang=\"en\">"
+          echo "<head>"
+          echo "  <meta charset=\"UTF-8\">"
+          echo "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+          echo "  <title>Test Reports</title>"
+          echo "  <style>"
+          echo "    body { font-family: Arial, sans-serif; padding: 20px; }"
+          echo "    h1 { color: #333; }"
+          echo "    ul { list-style-type: none; padding: 0; }"
+          echo "    li { margin: 10px 0; }"
+          echo "    a { text-decoration: none; color: #007acc; font-size: 18px; }"
+          echo "    a:hover { text-decoration: underline; }"
+          echo "  </style>"
+          echo "</head>"
+          echo "<body>"
+          echo "  <h1>Test Reports</h1>"
+          echo "  <ul>"
+      
+          found_folder=false
           for d in public/*/ ; do
-            folder=$(basename "$d")
-            echo "<li><a href=\"$folder/index.html\">$folder Report</a></li>" >> public/index.html
+            if [ -d "$d" ]; then
+          folder=$(basename "$d")
+          echo "    <li><a href=\"$folder/index.html\">$folder Report</a></li>"
+          found_folder=true
+            fi
           done
-          echo "</ul></body></html>" >> public/index.html
+
+          if [ "$found_folder" = false ]; then
+          echo "    <li>No reports found.</li>"
+          fi
+
+          echo "  </ul>"
+          echo "</body>"
+          echo "</html>"
+          } > public/index.html
+
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
