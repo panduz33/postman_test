@@ -1,117 +1,105 @@
-name: Run Multiple Postman Tests Manual Input File
+name: Run Postman Collections and Deploy to GitHub Pages
 
 on:
   workflow_dispatch:
     inputs:
       collections:
-        description: 'Select Postman collections to run (comma-separated)'
+        description: 'Comma-separated Postman collections to run'
         required: true
         default: login_tests,api_tests
 
 jobs:
-  prepare-matrix:
+  prepare:
     runs-on: ubuntu-latest
     outputs:
       collections: ${{ steps.set-matrix.outputs.collections }}
+      timestamp: ${{ steps.set-time.outputs.timestamp }}
     steps:
-      - name: Prepare Matrix
+      - name: Set Matrix Collections
         id: set-matrix
         run: |
-          echo "Input Collections: ${{ github.event.inputs.collections }}"
           collections_json=$(jq -nc --arg cols "${{ github.event.inputs.collections }}" '$cols | split(",")')
           echo "collections=$collections_json" >> $GITHUB_OUTPUT
 
+      - name: Set Timestamp
+        id: set-time
+        run: echo "timestamp=$(date +'%Y-%m-%d-%H-%M')" >> $GITHUB_OUTPUT
+
   run-tests:
-    needs: prepare-matrix
+    needs: prepare
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        collection: ${{ fromJson(needs.prepare-matrix.outputs.collections) }}
-    outputs:
-      public-dir: public
+        collection: ${{ fromJson(needs.prepare.outputs.collections) }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Newman and Reporter
+      - name: Install Newman
         run: |
           npm install -g newman
           npm install -g newman-reporter-htmlextra
 
-      - name: Run Collection
+      - name: Run Postman Collection
         run: |
-          COLL=${{ matrix.collection }}
-          echo "Running collection: $COLL"
-          mkdir -p public/$COLL
-          newman run "collections/${COLL}.json" \
+          mkdir -p results/${{ matrix.collection }}
+          newman run "collections/${{ matrix.collection }}.json" \
             -r cli,htmlextra \
-            --reporter-htmlextra-export "public/$COLL/index.html" --suppress-exit-code
+            --reporter-htmlextra-export "results/${{ matrix.collection }}/index.html" --suppress-exit-code
 
-      - name: Show public folder content
-        run: |
-          echo "Contents of public/"
-          ls -R public
-
-      - name: Upload collection artifact
+      - name: Upload Report Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.collection }}-report
-          path: public/${{ matrix.collection }}
-
-  collect-artifacts:
-    needs: run-tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all collection artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: public
-
-      - name: Generate dynamic index.html
-        run: |
-          mkdir -p public
-          echo '<!DOCTYPE html>
-          <html lang="en">
-          <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Test Reports</title>
-          <style>
-          body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f9fafb; margin: 0; padding: 40px; }
-          h1 { text-align: center; color: #111827; margin-bottom: 40px; }
-          .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-          .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center; transition: transform 0.2s; }
-          .card:hover { transform: translateY(-5px); }
-          .card a { text-decoration: none; color: #2563eb; font-size: 18px; font-weight: 600; }
-          </style>
-          </head>
-          <body>
-          <h1>Test Reports</h1>
-          <div class="grid">' > public/index.html
-
-          for d in public/*/ ; do
-          folder=$(basename "$d")
-          # Beautify the folder name: replace "-" and "_" with space, capitalize words
-          display_name=$(echo "$folder" | sed 's/[-_]/ /g' | awk '{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) substr($i,2)}}1')
-          echo "        <div class=\"card\"><a href=\"$folder/index.html\">$display_name</a></div>" >> public/index.html
-          done
-
-          echo '      </div>
-          </body>
-          </html>' >> public/index.html
-
-
-      - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: public
+          path: results/${{ matrix.collection }}
 
   deploy:
-    needs: collect-artifacts
+    needs: [run-tests, prepare]
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     steps:
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+      - name: Download All Reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports
+
+      - name: Checkout gh-pages Branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Copy Reports to Timestamped Folder
+        run: |
+          ts=${{ needs.prepare.outputs.timestamp }}
+          mkdir -p gh-pages/$ts
+          cp -r reports/* gh-pages/$ts/
+
+      - name: Generate index.html
+        run: |
+          cd gh-pages
+          echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Test Runs</title>
+          <style>
+          body { font-family: sans-serif; padding: 2rem; }
+          h1 { color: #333; }
+          ul { line-height: 1.6; }
+          a { color: #2563eb; text-decoration: none; }
+          </style>
+          </head><body><h1>Postman Test Reports</h1><ul>' > index.html
+
+          for run in $(ls -d 20*/); do
+            echo "<li><strong>$run</strong><ul>" >> index.html
+            for report in $(ls $run); do
+              echo "<li><a href=\"$run/$report/index.html\">$report</a></li>" >> index.html
+            done
+            echo "</ul></li>" >> index.html
+          done
+
+          echo '</ul></body></html>' >> index.html
+
+      - name: Commit and Push to gh-pages
+        run: |
+          cd gh-pages
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Add reports for ${{ needs.prepare.outputs.timestamp }}" || echo "No changes"
+          git push origin gh-pages
